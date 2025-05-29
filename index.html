@@ -1588,55 +1588,6 @@
             }
         });
 
-$(document).ready(function () {
-    // Функция для получения данных из Gemini API
-    async function fetchFromGemini(prompt) {
-        try {
-            // Инициализация Gemini API
-            const apiKey = "AIzaSyBml9UEzPtxJggDdnyqvWA2vZuV3Owq7d0"; // Ваш ключ API
-            const genAI = new google.generativeai.GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-            const result = await model.generateContent(prompt);
-            const response = await result.response;
-            const text = await response.text();
-            return text.trim();
-        } catch (error) {
-            console.error("Ошибка при запросе к Gemini API:", error);
-            throw error; // Бросаем ошибку, чтобы обработать в updateHeader
-        }
-    }
-
-    // Функция для обновления заголовка
-    async function updateHeader() {
-        try {
-            // Обновляем текст результата
-            $("#result").text("Генерация...");
-
-            // Получение случайного предмета
-            const subject = await fetchFromGemini("Сгенерируй название одного случайного учебного предмета на русском языке (например, 'Математика', 'Физика'). Верни только название предмета без дополнительных слов.");
-
-            // Получение случайного узбекского имени
-            const fullName = await fetchFromGemini("Сгенерируй случайное узбекское полное имя на латинице в формате 'Имя Фамилия' (например, 'Aziz Xolmirzayev'). Верни только имя и фамилию без дополнительных слов.");
-
-            // Обновление DOM
-            const header = $(".breadcrumb-header");
-            header.html(`${subject} - <span class="text-info">${fullName}</span>`);
-
-            // Обновляем текст результата
-            $("#result").text("Готово!");
-        } catch (error) {
-            $("#result").text("Ошибка: не удалось сгенерировать данные");
-            console.error("Ошибка генерации:", error);
-        }
-    }
-
-    // Вызов функции обновления при загрузке страницы
-    updateHeader();
-
-    // Существующий код (testSync, countdown и т.д.) остается без изменений
-    // ...
-});
     </script>
 
 
