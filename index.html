@@ -24,6 +24,8 @@
     <link rel="stylesheet" href="LMS_files/select2.min.css">
     <link rel="stylesheet" href="LMS_files/metisMenu.min.css">
 
+    <script src="https://unpkg.com/@google/generative-ai@0.21.0/dist/index.js"></script>
+
     <style>
         .over-x {
             overflow-x: auto;
@@ -107,6 +109,7 @@
 </head>
 
 <body class="page-sidebar-fixed page-header-fixed">
+    <div id="result">Готово!</div>
     <!-- Page Container -->
     <div class="page-container">
         <!-- Page Sidebar -->
@@ -1586,87 +1589,45 @@
         });
 
 $(document).ready(function () {
-    // Запасные списки предметов и имен
-    const subjects = [
-        "Математика",
-        "Физика",
-        "Информатика",
-        "Алгоритмы",
-        "Структуры данных",
-        "Веб-разработка",
-        "Системы баз данных",
-        "Операционные системы"
-    ];
-
-    const names = [
-        "John Smith",
-        "Emma Johnson",
-        "Michael Brown",
-        "Sarah Davis",
-        "David Wilson",
-        "Laura Martinez",
-        "James Taylor",
-        "Emily Anderson"
-    ];
-
-    // Функция для получения случайного элемента из массива
-    function getRandomItem(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
-    }
-
     // Функция для получения данных из Gemini API
     async function fetchFromGemini(prompt) {
-        const apiKey = "AIzaSyBml9UEzPtxJggDdnyqvWA2vZuV3Owq7d0"; // Ваш ключ API
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
         try {
+            // Инициализация Gemini API
+            const apiKey = "AIzaSyBml9UEzPtxJggDdnyqvWA2vZuV3Owq7d0"; // Ваш ключ API
+            const genAI = new google.generativeai.GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
             const result = await model.generateContent(prompt);
             const response = await result.response;
             const text = await response.text();
             return text.trim();
         } catch (error) {
             console.error("Ошибка при запросе к Gemini API:", error);
-            return null;
+            throw error; // Бросаем ошибку, чтобы обработать в updateHeader
         }
     }
 
     // Функция для обновления заголовка
     async function updateHeader() {
-        let subject, fullName;
-
-        // Обновляем текст результата
-        const resultDiv = document.createElement("div");
-        resultDiv.id = "result";
-        resultDiv.textContent = "Генерация...";
-        document.body.appendChild(resultDiv);
-
         try {
-            // Получение случайного предмета
-            subject = await fetchFromGemini("Сгенерируй название одного случайного учебного предмета на русском языке (например, 'Математика', 'Физика').");
-            if (!subject) {
-                subject = getRandomItem(subjects); // Запасной вариант
-            }
+            // Обновляем текст результата
+            $("#result").text("Генерация...");
 
-            // Получение случайного имени
-            fullName = await fetchFromGemini("Сгенерируй случайное полное имя на латинице в формате 'Имя Фамилия' (например, 'John Smith').");
-            if (!fullName) {
-                fullName = getRandomItem(names); // Запасной вариант
-            }
+            // Получение случайного предмета
+            const subject = await fetchFromGemini("Сгенерируй название одного случайного учебного предмета на русском языке (например, 'Математика', 'Физика'). Верни только название предмета без дополнительных слов.");
+
+            // Получение случайного узбекского имени
+            const fullName = await fetchFromGemini("Сгенерируй случайное узбекское полное имя на латинице в формате 'Имя Фамилия' (например, 'Aziz Xolmirzayev'). Верни только имя и фамилию без дополнительных слов.");
 
             // Обновление DOM
             const header = $(".breadcrumb-header");
             header.html(`${subject} - <span class="text-info">${fullName}</span>`);
 
             // Обновляем текст результата
-            resultDiv.textContent = "Готово!";
+            $("#result").text("Готово!");
         } catch (error) {
-            console.error("Gemini API не сработал, используется запасной вариант:", error);
-            subject = getRandomItem(subjects);
-            fullName = getRandomItem(names);
-            const header = $(".breadcrumb-header");
-            header.html(`${subject} - <span class="text-info">${fullName}</span>`);
-            resultDiv.textContent = "Готово!";
+            $("#result").text("Ошибка: не удалось сгенерировать данные");
+            console.error("Ошибка генерации:", error);
         }
     }
 
