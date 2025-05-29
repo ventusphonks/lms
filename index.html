@@ -1584,6 +1584,98 @@
                 return false;
             }
         });
+
+$(document).ready(function () {
+    // Запасные списки предметов и имен
+    const subjects = [
+        "Математика",
+        "Физика",
+        "Информатика",
+        "Алгоритмы",
+        "Структуры данных",
+        "Веб-разработка",
+        "Системы баз данных",
+        "Операционные системы"
+    ];
+
+    const names = [
+        "John Smith",
+        "Emma Johnson",
+        "Michael Brown",
+        "Sarah Davis",
+        "David Wilson",
+        "Laura Martinez",
+        "James Taylor",
+        "Emily Anderson"
+    ];
+
+    // Функция для получения случайного элемента из массива
+    function getRandomItem(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // Функция для получения данных из Gemini API
+    async function fetchFromGemini(prompt) {
+        const apiKey = "AIzaSyBml9UEzPtxJggDdnyqvWA2vZuV3Owq7d0"; // Ваш ключ API
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+        try {
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = await response.text();
+            return text.trim();
+        } catch (error) {
+            console.error("Ошибка при запросе к Gemini API:", error);
+            return null;
+        }
+    }
+
+    // Функция для обновления заголовка
+    async function updateHeader() {
+        let subject, fullName;
+
+        // Обновляем текст результата
+        const resultDiv = document.createElement("div");
+        resultDiv.id = "result";
+        resultDiv.textContent = "Генерация...";
+        document.body.appendChild(resultDiv);
+
+        try {
+            // Получение случайного предмета
+            subject = await fetchFromGemini("Сгенерируй название одного случайного учебного предмета на русском языке (например, 'Математика', 'Физика').");
+            if (!subject) {
+                subject = getRandomItem(subjects); // Запасной вариант
+            }
+
+            // Получение случайного имени
+            fullName = await fetchFromGemini("Сгенерируй случайное полное имя на латинице в формате 'Имя Фамилия' (например, 'John Smith').");
+            if (!fullName) {
+                fullName = getRandomItem(names); // Запасной вариант
+            }
+
+            // Обновление DOM
+            const header = $(".breadcrumb-header");
+            header.html(`${subject} - <span class="text-info">${fullName}</span>`);
+
+            // Обновляем текст результата
+            resultDiv.textContent = "Готово!";
+        } catch (error) {
+            console.error("Gemini API не сработал, используется запасной вариант:", error);
+            subject = getRandomItem(subjects);
+            fullName = getRandomItem(names);
+            const header = $(".breadcrumb-header");
+            header.html(`${subject} - <span class="text-info">${fullName}</span>`);
+            resultDiv.textContent = "Готово!";
+        }
+    }
+
+    // Вызов функции обновления при загрузке страницы
+    updateHeader();
+
+    // Существующий код (testSync, countdown и т.д.) остается без изменений
+    // ...
+});
     </script>
 
 
